@@ -1,6 +1,6 @@
 package com.CodingB.Honeypot_AI.Config;
 
-public class AppConstantsConfig {
+public class AppConstants {
 
     // Scam trigger keywords
     public static final String[] SCAM_KEYWORDS = {
@@ -14,7 +14,7 @@ public class AppConstantsConfig {
     public static final String TYPE_LINK = "PHISHING_LINK";
     public static final String TYPE_PHONE = "PHONE_NUMBER";
 
-    private AppConstantsConfig() {
+    private AppConstants() {
         // Prevent object creation
     }
 }
