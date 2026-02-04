@@ -1,32 +1,10 @@
 package com.CodingB.Honeypot_AI.Service;
 
 import com.CodingB.Honeypot_AI.Client.OpenAiClient;
-import com.CodingB.Honeypot_AI.Dto.Request.IncomingMessageRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-//@Service
-//@Slf4j
-//public class AgentConversationService {
-//
-//    public String generateReply(IncomingMessageRequestDto request) {
-//        log.info("Generating AI agent reply...");
-//
-//        try {
-//            // In real project → call OpenAI / LLM here
-//            return "Oh no, I didn't know that. What should I do now?";
-//
-//        } catch (Exception e) {
-//            log.error("Failed to generate agent reply", e);
-//            return "Sorry, I didn't understand. Can you explain again?";
-//        }
-//    }
-//}
-
-
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
@@ -35,23 +13,19 @@ public class AgentConversationService {
 
     private final OpenAiClient openAiClient;
 
-    public String generateReply(IncomingMessageRequestDto request) {
-        log.info("Generating AI agent reply using Azure OpenAI...");
+    public String generateReplyFromText(String sessionId, String scammerText) {
 
-        try {
-            String scammerMessage = request.getMessage().getText();
+        log.info("Generating AI honeypot reply for session {}", sessionId);
 
-            String prompt = "Scammer said: \"" + scammerMessage +
-                    "\". Respond like a normal confused human, not an AI, " +
-                    "and try to keep the conversation going.";
+        String prompt = """
+You are pretending to be a normal person who is confused about a financial issue.
 
-            return openAiClient.generateAgentReply(prompt);
+Do NOT reveal you are detecting scams.
+Respond like a worried user asking questions.
 
-        } catch (Exception e) {
-            log.error("Failed to generate AI reply", e);
-            return "Sorry, I didn't understand. Can you repeat?";
-        }
+Scammer message:
+""" + scammerText;
+
+        return openAiClient.generateAgentReply(prompt);
     }
 }
-
-

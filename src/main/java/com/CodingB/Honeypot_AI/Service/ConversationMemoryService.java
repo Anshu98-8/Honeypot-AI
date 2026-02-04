@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,65 +20,52 @@ public class ConversationMemoryService {
     private final ConversationSessionRepository sessionRepository;
     private final ConversationMessageRepository messageRepository;
 
-    /**
-     * Save incoming scammer message and create session if first time
-     */
     public void saveIncomingMessage(IncomingMessageRequestDto request) {
         String sessionId = request.getSessionId();
         log.info("Saving incoming message for session {}", sessionId);
 
         try {
-            // Check if session exists
-            Optional<ConversationSession> sessionOpt = sessionRepository.findById(sessionId);
+            ConversationSession session = sessionRepository.findById(sessionId)
+                    .orElseGet(() -> {
+                        ConversationSession newSession = new ConversationSession();
+                        newSession.setSessionId(sessionId);
+                        newSession.setScamDetected(false);
+                        newSession.setTotalMessagesExchanged(0);
+                        newSession.setCreatedAt(Instant.now());
+                        newSession.setLastUpdatedAt(Instant.now());
+                        return sessionRepository.save(newSession);
+                    });
 
-            ConversationSession session;
-            if (sessionOpt.isEmpty()) {
-                log.info("Creating new conversation session {}", sessionId);
+            session.setLastUpdatedAt(Instant.now());
+            sessionRepository.save(session);
 
-                session = new ConversationSession();
-                session.setSessionId(sessionId);
-                session.setScamDetected(false);
-                session.setTotalMessagesExchanged(0);
-                session.setCreatedAt(Instant.now());
-                session.setLastUpdatedAt(Instant.now());
+            ConversationMessage msg = new ConversationMessage();
+            msg.setSessionId(sessionId);
+            msg.setSender(request.getMessage().getSender());
+            msg.setText(request.getMessage().getText());
 
-                sessionRepository.save(session);
-            } else {
-                session = sessionOpt.get();
-                session.setLastUpdatedAt(Instant.now());
-                sessionRepository.save(session);
-            }
+            // 🔥 Convert epoch millis → Instant
+            msg.setTimestamp(Instant.ofEpochMilli(request.getMessage().getTimestamp()));
 
-            // Save message
-            ConversationMessage message = new ConversationMessage();
-            message.setSessionId(sessionId);
-            message.setSender(request.getMessage().getSender());
-            message.setText(request.getMessage().getText());
-            message.setTimestamp(request.getMessage().getTimestamp());
-
-            messageRepository.save(message);
+            messageRepository.save(msg);
+            updateMessageCount(sessionId);
 
         } catch (Exception e) {
             log.error("Error saving incoming message", e);
         }
     }
 
-    /**
-     * Save AI agent reply
-     */
     public void saveAgentReply(String sessionId, String reply) {
         log.info("Saving agent reply for session {}", sessionId);
 
         try {
-            ConversationMessage message = new ConversationMessage();
-            message.setSessionId(sessionId);
-            message.setSender("agent");
-            message.setText(reply);
-            message.setTimestamp(Instant.now());
+            ConversationMessage msg = new ConversationMessage();
+            msg.setSessionId(sessionId);
+            msg.setSender("agent");
+            msg.setText(reply);
+            msg.setTimestamp(Instant.now());
 
-            messageRepository.save(message);
-
-            // Update session message count
+            messageRepository.save(msg);
             updateMessageCount(sessionId);
 
         } catch (Exception e) {
@@ -86,36 +73,45 @@ public class ConversationMemoryService {
         }
     }
 
-    /**
-     * Count total messages exchanged in a session
-     */
-    public int countMessages(String sessionId) {
-        try {
-            int count = messageRepository.countMessagesInSession(sessionId);
-            log.info("Total messages in session {} = {}", sessionId, count);
-            return count;
-        } catch (Exception e) {
-            log.error("Error counting messages", e);
-            return 0;
-        }
+    public void markScamDetected(String sessionId) {
+        sessionRepository.findById(sessionId).ifPresent(session -> {
+            session.setScamDetected(true);
+            session.setLastUpdatedAt(Instant.now());
+            sessionRepository.save(session);
+            log.warn("Session {} marked as scam", sessionId);
+        });
     }
 
-    /**
-     * Update total message count in session table
-     */
     private void updateMessageCount(String sessionId) {
-        try {
-            int total = messageRepository.countMessagesInSession(sessionId);
-
-            Optional<ConversationSession> sessionOpt = sessionRepository.findById(sessionId);
-            sessionOpt.ifPresent(session -> {
-                session.setTotalMessagesExchanged(total);
-                session.setLastUpdatedAt(Instant.now());
-                sessionRepository.save(session);
-            });
-
-        } catch (Exception e) {
-            log.error("Error updating message count", e);
-        }
+        int total = messageRepository.countMessagesInSession(sessionId);
+        sessionRepository.findById(sessionId).ifPresent(session -> {
+            session.setTotalMessagesExchanged(total);
+            session.setLastUpdatedAt(Instant.now());
+            sessionRepository.save(session);
+        });
     }
+
+    public List<ConversationMessage> getConversationHistory(String sessionId) {
+        return messageRepository.getConversationHistory(sessionId);
+    }
+
+    public int countMessages(String sessionId) {
+        return messageRepository.countMessagesInSession(sessionId);
+    }
+
+    public void saveIncomingRawMessage(String sessionId, String sender, String text, Long timestamp) {
+        ConversationMessage msg = new ConversationMessage();
+        msg.setSessionId(sessionId);
+        msg.setSender(sender);
+        msg.setText(text);
+        msg.setTimestamp(Instant.ofEpochMilli(timestamp));
+
+        messageRepository.save(msg);
+        updateMessageCount(sessionId);
+    }
+
+
 }
+
+
+

@@ -18,11 +18,10 @@ public class ConversationMessage {
 
     private String sessionId;
 
-    private String sender; // scammer / agent
+    private String sender;  // scammer / agent / user
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String text;
 
     private Instant timestamp;
 }
-
