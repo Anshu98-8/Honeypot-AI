@@ -129,66 +129,45 @@ public class MessageProcessingService {
     private final ConversationMemoryService memoryService;
     private final GuviReportingService guviReportingService;
 
-    /**
-     * 🔥 MAIN METHOD USED BY CONTROLLER (Hackathon Flow)
-     */
-    public Map<String, Object> processIncomingMessage(
-            String sessionId,
-            String sender,
-            String text,
-            Long timestamp,
-            List<Map<String, Object>> conversationHistory,
-            String channel,
-            String language,
-            String locale
-    ) {
+
+    public Map<String, Object> processIncomingMessage(String sessionId, String sender, String text, Long timestamp, List<Map<String, Object>> conversationHistory, String channel, String language, String locale) {
 
         log.info("🚀 Processing message for session {}", sessionId);
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // 1️⃣ Save incoming scammer message
+            // 1️⃣ Save incoming message
             memoryService.saveIncomingRawMessage(sessionId, sender, text, timestamp);
 
-            // 2️⃣ Scam detection (fast keyword check)
-            boolean isScam = scamDetectionService.quickKeywordDetect(text);
-
-            String reply;
-
-            if (isScam) {
-                log.warn("⚠ Scam detected for session {}", sessionId);
-
+            // 2️⃣ Scam detection (ONLY for tagging, NOT for AI trigger)
+            boolean keywordScam = scamDetectionService.quickKeywordDetect(text);
+            if (keywordScam) {
                 memoryService.markScamDetected(sessionId);
-
-                // 3️⃣ Generate honeypot human-like reply
-                reply = agentConversationService.generateReplyFromText(sessionId, text);
-
-                // 4️⃣ Extract intelligence
-                intelligenceExtractionService.extractFromText(sessionId, text);
-
-            } else {
-                reply = "I'm not sure I understand. Can you explain more?";
             }
 
-            // 5️⃣ Save agent reply
+            // 3️⃣ ALWAYS generate AI reply (MAIN CHANGE 🔥)
+            String reply = agentConversationService.generateReplyFromText(sessionId, text);
+
+            // 4️⃣ Extract intelligence from scammer message
+            intelligenceExtractionService.extractFromText(sessionId, text);
+
+            // 5️⃣ Save honeypot reply
             memoryService.saveAgentReply(sessionId, reply);
 
-            // 6️⃣ Check if final GUVI report should be sent
+            // 6️⃣ Reporting logic
             guviReportingService.checkAndSendFinalReport(sessionId);
 
-            // 7️⃣ Build hackathon response format
             response.put("status", "success");
             response.put("reply", reply);
-
             return response;
 
         } catch (Exception e) {
             log.error("❌ Error processing message", e);
-
             response.put("status", "error");
             response.put("reply", "Sorry, something went wrong.");
             return response;
         }
     }
+
 }

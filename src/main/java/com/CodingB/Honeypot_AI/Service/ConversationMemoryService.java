@@ -25,16 +25,15 @@ public class ConversationMemoryService {
         log.info("Saving incoming message for session {}", sessionId);
 
         try {
-            ConversationSession session = sessionRepository.findById(sessionId)
-                    .orElseGet(() -> {
-                        ConversationSession newSession = new ConversationSession();
-                        newSession.setSessionId(sessionId);
-                        newSession.setScamDetected(false);
-                        newSession.setTotalMessagesExchanged(0);
-                        newSession.setCreatedAt(Instant.now());
-                        newSession.setLastUpdatedAt(Instant.now());
-                        return sessionRepository.save(newSession);
-                    });
+            ConversationSession session = sessionRepository.findById(sessionId).orElseGet(() -> {
+                ConversationSession newSession = new ConversationSession();
+                newSession.setSessionId(sessionId);
+                newSession.setScamDetected(false);
+                newSession.setTotalMessagesExchanged(0);
+                newSession.setCreatedAt(Instant.now());
+                newSession.setLastUpdatedAt(Instant.now());
+                return sessionRepository.save(newSession);
+            });
 
             session.setLastUpdatedAt(Instant.now());
             sessionRepository.save(session);

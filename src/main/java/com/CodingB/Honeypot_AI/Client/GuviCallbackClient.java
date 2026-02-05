@@ -26,15 +26,9 @@ public class GuviCallbackClient {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Map<String, Object>> requestEntity =
-                    new HttpEntity<>(payload, headers);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    guviUrl,
-                    HttpMethod.POST,
-                    requestEntity,
-                    String.class
-            );
+            ResponseEntity<String> response = restTemplate.exchange(guviUrl, HttpMethod.POST, requestEntity, String.class);
 
             log.info("GUVI callback response status: {}", response.getStatusCode());
 

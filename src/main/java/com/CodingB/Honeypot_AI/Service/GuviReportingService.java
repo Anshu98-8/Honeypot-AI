@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,8 +37,7 @@ public class GuviReportingService {
 
                     log.info("Conditions met. Preparing final intelligence report...");
 
-                    List<IntelligenceRecord> records =
-                            intelligenceRepository.findBySessionId(sessionId);
+                    List<IntelligenceRecord> records = intelligenceRepository.findBySessionId(sessionId);
 
                     Map<String, Object> payload = buildPayload(sessionId, session.getTotalMessagesExchanged(), records);
 
@@ -76,11 +77,7 @@ public class GuviReportingService {
     }
 
     private List<String> filterByType(List<IntelligenceRecord> records, String type) {
-        return records.stream()
-                .filter(r -> type.equalsIgnoreCase(r.getType()))
-                .map(IntelligenceRecord::getValue)
-                .distinct()
-                .collect(Collectors.toList());
+        return records.stream().filter(r -> type.equalsIgnoreCase(r.getType())).map(IntelligenceRecord::getValue).distinct().collect(Collectors.toList());
     }
 }
 

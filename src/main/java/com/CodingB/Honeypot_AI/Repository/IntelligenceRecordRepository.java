@@ -1,7 +1,9 @@
 package com.CodingB.Honeypot_AI.Repository;
 
 import com.CodingB.Honeypot_AI.Entity.IntelligenceRecord;
-import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -21,12 +23,12 @@ public interface IntelligenceRecordRepository extends JpaRepository<Intelligence
     // Delete duplicate intelligence entries
     @Modifying
     @Query(value = """
-        DELETE FROM intelligence_record a
-        USING intelligence_record b
-        WHERE a.id < b.id
-        AND a.session_id = b.session_id
-        AND a.type = b.type
-        AND a.value = b.value
-    """, nativeQuery = true)
+                DELETE FROM intelligence_record a
+                USING intelligence_record b
+                WHERE a.id < b.id
+                AND a.session_id = b.session_id
+                AND a.type = b.type
+                AND a.value = b.value
+            """, nativeQuery = true)
     void removeDuplicateRecords();
 }

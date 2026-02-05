@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class HealthController {
 
-    @GetMapping("/health")
+    @GetMapping("/")
     public String healthCheck() {
         log.info("Health check endpoint called");
         return "Honeypot AI System is running";

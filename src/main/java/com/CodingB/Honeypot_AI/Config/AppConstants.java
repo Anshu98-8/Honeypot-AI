@@ -3,10 +3,7 @@ package com.CodingB.Honeypot_AI.Config;
 public class AppConstants {
 
     // Scam trigger keywords
-    public static final String[] SCAM_KEYWORDS = {
-            "verify", "urgent", "account blocked",
-            "suspend", "upi", "bank", "otp"
-    };
+    public static final String[] SCAM_KEYWORDS = {"verify", "urgent", "account blocked", "suspend", "upi", "bank", "otp"};
 
     // Intelligence types
     public static final String TYPE_UPI = "UPI_ID";

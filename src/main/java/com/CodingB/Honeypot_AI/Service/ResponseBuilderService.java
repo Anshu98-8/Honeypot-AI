@@ -9,17 +9,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ResponseBuilderService {
 
-    public HoneypotApiResponseDto buildResponse(ScamDetectionResultDto detectionResult,
-                                                String agentReply,
-                                                int totalMessages) {
+    public HoneypotApiResponseDto buildResponse(ScamDetectionResultDto detectionResult, String agentReply, int totalMessages) {
 
         log.info("Building API response");
 
-        return HoneypotApiResponseDto.builder()
-                .status("success")
-                .detectionResult(detectionResult)
-                .agentReply(agentReply)
-                .totalMessagesExchanged(totalMessages)
-                .build();
+        return HoneypotApiResponseDto.builder().status("success").detectionResult(detectionResult).agentReply(agentReply).totalMessagesExchanged(totalMessages).build();
     }
 }

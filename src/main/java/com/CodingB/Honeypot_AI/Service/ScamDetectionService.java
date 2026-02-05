@@ -32,9 +32,7 @@ public class ScamDetectionService {
                     """ + messageText;
 
 
-            String aiResponse = openAiClient.generateAgentReply(prompt)
-                    .trim()
-                    .toUpperCase();
+            String aiResponse = openAiClient.generateAgentReply(prompt).trim().toUpperCase();
 
             log.info("AI scam detection raw response: {}", aiResponse);
 
@@ -51,11 +49,7 @@ public class ScamDetectionService {
 
         // 🔁 FALLBACK KEYWORD DETECTION (IMPORTANT)
         String lowerText = request.getMessage().getText().toLowerCase();
-        if (lowerText.contains("upi")
-                || lowerText.contains("verify")
-                || lowerText.contains("account blocked")
-                || lowerText.contains("urgent")
-                || lowerText.contains("suspend")) {
+        if (lowerText.contains("upi") || lowerText.contains("verify") || lowerText.contains("account blocked") || lowerText.contains("urgent") || lowerText.contains("suspend")) {
 
             result.setScamDetected(true);
             result.setConfidenceScore(75);
@@ -75,12 +69,7 @@ public class ScamDetectionService {
 
         String lower = text.toLowerCase();
 
-        boolean result = lower.contains("upi")
-                || lower.contains("account blocked")
-                || lower.contains("verify")
-                || lower.contains("suspend")
-                || lower.contains("urgent")
-                || lower.contains("bank");
+        boolean result = lower.contains("upi") || lower.contains("account blocked") || lower.contains("verify") || lower.contains("suspend") || lower.contains("urgent") || lower.contains("bank");
 
         log.info("Keyword scam detection result: {}", result);
         return result;

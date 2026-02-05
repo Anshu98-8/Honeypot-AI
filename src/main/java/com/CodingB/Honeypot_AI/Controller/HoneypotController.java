@@ -1,75 +1,4 @@
-package com.CodingB.Honeypot_AI.Controller;//package com.CodingB.Honeypot_AI.Controller;
-//
-//import com.CodingB.Honeypot_AI.Service.MessageProcessingService;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//
-//import java.util.HashMap;
-//import java.util.Map;
-//
-//@RestController
-//@RequestMapping("/honeypot")
-//@RequiredArgsConstructor
-//@Slf4j
-//public class HoneypotController {
-//
-//    private final MessageProcessingService messageProcessingService;
-//
-//    @Value("${honeypot.api.key}")
-//    private String expectedApiKey;
-//
-//    @PostMapping("/message")
-//    public ResponseEntity<Map<String, String>> receiveMessage(
-//            @RequestHeader(value = "x-api-key", required = false) String apiKey,
-//            @RequestBody Map<String, Object> body // 🔥 Accept ANY JSON safely
-//    ) {
-//        log.info("Incoming honeypot request received");
-//
-//        if (apiKey == null || !apiKey.equals(expectedApiKey)) {
-//            log.warn("Unauthorized request");
-//            return ResponseEntity.status(401).build();
-//        }
-//
-//        try {
-//            // 🔥 Extract required fields manually
-//            String sessionId = (String) body.get("sessionId");
-//
-//            Map<String, Object> message = (Map<String, Object>) body.get("message");
-//            String sender = (String) message.get("sender");
-//            String text = (String) message.get("text");
-//
-//            Number tsNumber = (Number) message.get("timestamp");
-//            Long timestamp = tsNumber != null ? tsNumber.longValue() : System.currentTimeMillis();
-//
-//            log.info("Session: {}, Sender: {}, Text: {}", sessionId, sender, text);
-//
-//            // 👉 Call service using simplified parameters
-//            String agentReply = messageProcessingService.processRawMessage(
-//                    sessionId, sender, text, timestamp
-//            );
-//
-//            Map<String, String> response = new HashMap<>();
-//            response.put("status", "success");
-//            response.put("reply", agentReply);
-//
-//            return ResponseEntity.ok(response);
-//
-//        } catch (Exception e) {
-//            log.error("Error processing honeypot request", e);
-//
-//            Map<String, String> error = new HashMap<>();
-//            error.put("status", "error");
-//            error.put("reply", "Processing failed");
-//
-//            return ResponseEntity.ok(error); // still 200 so platform doesn't fail
-//        }
-//    }
-//}
-
-
+package com.CodingB.Honeypot_AI.Controller;
 
 
 import com.CodingB.Honeypot_AI.Service.MessageProcessingService;
@@ -79,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -92,10 +20,7 @@ public class HoneypotController {
     private final MessageProcessingService messageProcessingService;
 
     @PostMapping("/message")
-    public ResponseEntity<Map<String, Object>> receiveMessage(
-            @RequestHeader("x-api-key") String apiKey,
-            @RequestBody Map<String, Object> body
-    ) {
+    public ResponseEntity<Map<String, Object>> receiveMessage(@RequestHeader("x-api-key") String apiKey, @RequestBody Map<String, Object> body) {
         log.info("📩 Incoming honeypot request received");
 
         try {
@@ -120,12 +45,10 @@ public class HoneypotController {
             }
 
             // ---------------- CONVERSATION HISTORY ----------------
-            List<Map<String, Object>> conversationHistory =
-                    (List<Map<String, Object>>) body.getOrDefault("conversationHistory", List.of());
+            List<Map<String, Object>> conversationHistory = (List<Map<String, Object>>) body.getOrDefault("conversationHistory", List.of());
 
             // ---------------- METADATA ----------------
-            Map<String, Object> metadata =
-                    (Map<String, Object>) body.getOrDefault("metadata", Map.of());
+            Map<String, Object> metadata = (Map<String, Object>) body.getOrDefault("metadata", Map.of());
 
             String channel = (String) metadata.getOrDefault("channel", "UNKNOWN");
             String language = (String) metadata.getOrDefault("language", "UNKNOWN");
@@ -134,26 +57,13 @@ public class HoneypotController {
             log.info("Session: {}, Sender: {}, Channel: {}", sessionId, sender, channel);
 
             // ---------------- CALL SERVICE ----------------
-            Map<String, Object> serviceResponse =
-                    messageProcessingService.processIncomingMessage(
-                            sessionId,
-                            sender,
-                            text,
-                            timestamp,
-                            conversationHistory,
-                            channel,
-                            language,
-                            locale
-                    );
+            Map<String, Object> serviceResponse = messageProcessingService.processIncomingMessage(sessionId, sender, text, timestamp, conversationHistory, channel, language, locale);
 
             return ResponseEntity.ok(serviceResponse);
 
         } catch (Exception e) {
             log.error("❌ Error processing honeypot request", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                    "status", "error",
-                    "message", "Internal server error"
-            ));
+            return ResponseEntity.internalServerError().body(Map.of("status", "error", "message", "Internal server error"));
         }
     }
 
@@ -187,9 +97,6 @@ public class HoneypotController {
     // ❌ BAD REQUEST HELPER
     // ---------------------------------------------------------
     private ResponseEntity<Map<String, Object>> badRequest(String msg) {
-        return ResponseEntity.badRequest().body(Map.of(
-                "status", "error",
-                "message", msg
-        ));
+        return ResponseEntity.badRequest().body(Map.of("status", "error", "message", msg));
     }
 }
