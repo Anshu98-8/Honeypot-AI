@@ -186,7 +186,7 @@ Restart application after saving.
 
 1️⃣ Clone Project
 
-git clone <repo-url>
+git clone <https://github.com/Anshu98-8/Honeypot-AI.git>
 
 2️⃣ Configure application.properties
 
@@ -230,7 +230,7 @@ Fully deployed backend with:
 
 # 👨‍💻 Author
 
-Anshu  
+Anshu98-8 
 Backend Developer | AI Enthusiast  
 Focused on building intelligent systems that solve real-world problems.
 
